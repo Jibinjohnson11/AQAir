@@ -272,13 +272,24 @@ img, picture, video, canvas {
 .room.has-photo .room__air   { opacity: .8; }
 
 /* over a bright interior the glass cards invert to a deep tint so they stay legible */
+/* over the photograph the cards stay clear glass; the window behind CO₂ and
+   Temperature is near-white, so the pane carries a faint Deep Air Blue cast —
+   still see-through, just enough to hold light text */
 .room.has-photo ~ .hero__inner .fcard {
-    background: linear-gradient(150deg, rgba(22, 50, 79, .74) 0%, rgba(16, 38, 64, .56) 100%);
-    border-color: rgba(214, 235, 243, .36);
+    background: rgba(22, 50, 79, .22);
 }
 
-.room.has-photo ~ .hero__inner .fcard__icon {
-    background: rgba(11, 28, 47, .55);
+.room.has-photo ~ .hero__inner .fcard__label {
+    color: rgba(255, 255, 255, .92);
+    text-shadow: 0 1px 3px rgba(11, 28, 47, .55);
+}
+
+.room.has-photo ~ .hero__inner .fcard__value {
+    text-shadow: 0 1px 4px rgba(11, 28, 47, .55);
+}
+
+@media (hover: hover) {
+    .room.has-photo ~ .hero__inner .fcard:hover { background: rgba(22, 50, 79, .26); }
 }
 
 /* wall: light pools where the window is */
@@ -778,19 +789,62 @@ img, picture, video, canvas {
     --r: 0deg;
     position: absolute;
     z-index: 4;
+    /* real frosted glass: a thin white tint, the room blurred through it, a
+       hairline edge and one soft shadow — no solid fill anywhere */
+    --fcard-sh: 0 8px 32px rgba(22, 50, 79, .14), inset 0 1px 0 rgba(255, 255, 255, .25);
     display: flex;
     align-items: center;
-    gap: .75rem;
-    padding: .78rem 1rem;
-    border-radius: 18px;
-    background: var(--glass);
-    border: var(--glass-br);
-    box-shadow: var(--glass-sh);
-    backdrop-filter: blur(20px) saturate(130%);
-    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    gap: .6rem;
+    padding: .6rem .8rem;
+    border-radius: 15px;
+    overflow: hidden;              /* clips the highlight to the radius */
+    background: rgba(255, 255, 255, .10);
+    border: 1px solid rgba(255, 255, 255, .28);
+    box-shadow: var(--fcard-sh);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
     transform: translateY(0) scale(var(--s)) rotate(var(--r));
     will-change: transform;
     animation: bob 9s ease-in-out infinite;
+    /* `translate` composes with the bob's `transform`, so the hover lift
+       never interrupts the drift */
+    transition: translate .35s cubic-bezier(.2, .7, .2, 1),
+                border-color .35s ease, box-shadow .35s ease, background .35s ease;
+}
+
+/* the sheen across the pane */
+.fcard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, .20), rgba(255, 255, 255, .03));
+    pointer-events: none;
+    transition: opacity .35s ease;
+}
+
+/* the reflection caught along the top edge */
+.fcard::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .7), rgba(255, 255, 255, 0));
+    pointer-events: none;
+}
+
+/* the content sits above the sheen so it stays crisp */
+.fcard > * { position: relative; z-index: 1; }
+
+@media (hover: hover) {
+    .hero__stage .fcard:hover {
+        translate: 0 -3px;
+        background: rgba(255, 255, 255, .14);
+        border-color: rgba(255, 255, 255, .42);
+        --fcard-sh: 0 12px 34px rgba(22, 50, 79, .18), inset 0 1px 0 rgba(255, 255, 255, .38);
+    }
 }
 
 @keyframes bob {
@@ -799,18 +853,18 @@ img, picture, video, canvas {
 }
 
 .fcard__icon {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     flex: none;
     display: grid;
     place-items: center;
-    border-radius: 11px;
-    color: var(--ice);
-    background: rgba(22, 50, 79, .42);
-    border: 1px solid rgba(214, 235, 243, .18);
+    border-radius: 9px;
+    color: var(--deep);
+    background: linear-gradient(140deg, rgba(214, 235, 243, .92), rgba(185, 217, 225, .82));
+    border: 1px solid rgba(255, 255, 255, .5);
 }
 
-.fcard__icon svg { width: 19px; height: 19px; }
+.fcard__icon svg { width: 17px; height: 17px; }
 
 .fcard__text {
     display: flex;
@@ -821,19 +875,21 @@ img, picture, video, canvas {
 }
 
 .fcard__label {
-    font-size: .67rem;
+    font-size: .62rem;
     font-weight: 600;
     letter-spacing: .12em;
     text-transform: uppercase;
-    color: rgba(214, 235, 243, .72);
+    color: rgba(214, 235, 243, .9);
+    text-shadow: 0 1px 2px rgba(11, 28, 47, .35);
 }
 
 .fcard__value {
     font-family: var(--font-display);
-    font-size: 1.02rem;
+    font-size: .95rem;
     font-weight: 700;
     letter-spacing: -.01em;
     color: var(--white);
+    text-shadow: 0 1px 3px rgba(11, 28, 47, .4);
 }
 
 .fcard__dot {
@@ -846,8 +902,8 @@ img, picture, video, canvas {
 }
 
 .fcard__spark {
-    width: 54px;
-    height: 22px;
+    width: 46px;
+    height: 20px;
     flex: none;
     color: var(--glacier);
 }
@@ -870,16 +926,17 @@ img, picture, video, canvas {
 .is-far {
     --s: .84;
     z-index: 3;
-    opacity: .84;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 18px 34px -22px rgba(6, 20, 34, .7);
+    opacity: .9;
+    --fcard-sh: 0 6px 24px rgba(22, 50, 79, .12), inset 0 1px 0 rgba(255, 255, 255, .22);
 }
 
 /* placement — orbiting the device, not gridded */
-.fcard--aq  { top: 4%;  left: -9%;  --r: -1.4deg; animation-delay: 0s;    }
+.fcard--aq  { top: calc(4% + 18px);  left: -9%;  --r: -1.4deg; animation-delay: 0s;    }
 .fcard--co2 { top: 20%; right: -8%;  --r: 1.6deg;  animation-delay: -2.1s; }
 .fcard--voc { top: 43%; right: 0%;   --r: -2deg;   animation-delay: -5.6s; }
 .fcard--pm  { top: 54%; left: -13%;  --r: 1.1deg;  animation-delay: -4.2s; }
 .fcard--gas { top: 69%; right: -6%;  --r: -1deg;   animation-delay: -6.4s; }
+.fcard--temp { top: 29%; left: -4%;  --r: 1.3deg;  animation-delay: -7.8s; }
 
 .insight {
     position: absolute;
@@ -2193,11 +2250,12 @@ img, picture, video, canvas {
     /* cards leave the stage box and orbit the room itself */
     .room.has-photo ~ .hero__inner .stage { position: static; }
 
-    .room.has-photo ~ .hero__inner .fcard--aq  { top: 12%; left: 49%;  right: auto; }
+    .room.has-photo ~ .hero__inner .fcard--aq  { top: calc(12% + 18px); left: 49%;  right: auto; }
     .room.has-photo ~ .hero__inner .fcard--voc { top: 39%; left: 46.5%; right: auto; }
     .room.has-photo ~ .hero__inner .fcard--co2 { top: 15%; right: 6%;  left: auto;  }
     .room.has-photo ~ .hero__inner .fcard--pm  { top: 66%; left: 44%;  right: auto; }
     .room.has-photo ~ .hero__inner .fcard--gas { top: 86%; right: 5%;  left: auto;  }
+    .room.has-photo ~ .hero__inner .fcard--temp { top: 42%; right: 3%; left: auto;  }
 
     .room.has-photo ~ .hero__inner .insight {
         top: auto;
@@ -2246,7 +2304,7 @@ img, picture, video, canvas {
     .hero__stage .stage {
         width: 100%;
         min-width: 0;
-        max-width: 42rem;          /* or five would sit in one row at 1200px */
+        max-width: 42rem;          /* 3 + 3 at tablet, rather than six in one row at 1200px */
         margin-inline: auto;
         height: auto;
         aspect-ratio: auto;
@@ -2272,7 +2330,7 @@ img, picture, video, canvas {
         transform: none;
         animation: none;
         will-change: auto;
-        box-shadow: var(--glass-sh);
+        --fcard-sh: 0 8px 32px rgba(22, 50, 79, .14), inset 0 1px 0 rgba(255, 255, 255, .25);
     }
 
     /* "AIR QUALITY" is the one label long enough to wrap in a grid track, and
@@ -2289,10 +2347,11 @@ img, picture, video, canvas {
     .hero__stage .fcard--voc { order: 3; }
     .hero__stage .fcard--pm  { order: 4; }
     .hero__stage .fcard--gas { order: 5; }
+    .hero__stage .fcard--temp { order: 6; }
 
     /* the AI line closes the grid rather than floating over it */
     .hero__stage .insight {
-        order: 6;
+        order: 7;
         grid-column: 1 / -1;
         position: relative;
         inset: auto;
@@ -2578,15 +2637,15 @@ img, picture, video, canvas {
     .stage { aspect-ratio: 1 / 1.14; }
 
     .fcard {
-        gap: .55rem;
-        padding: .58rem .72rem;
-        border-radius: 15px;
+        gap: .5rem;
+        padding: .52rem .66rem;
+        border-radius: 13px;
     }
 
-    .fcard__icon { width: 28px; height: 28px; border-radius: 9px; }
-    .fcard__icon svg { width: 16px; height: 16px; }
-    .fcard__label { font-size: .58rem; }
-    .fcard__value { font-size: .86rem; }
+    .fcard__icon { width: 26px; height: 26px; border-radius: 8px; }
+    .fcard__icon svg { width: 15px; height: 15px; }
+    .fcard__label { font-size: .56rem; }
+    .fcard__value { font-size: .84rem; }
     .fcard__spark { width: 38px; height: 18px; }
     .meter { display: none; }
 
@@ -5989,9 +6048,14 @@ html.pre-on, html.pre-on body { overflow: hidden; }
 
 /* the hero is already standing behind the overlay; this is the last of the
    distance it travels, so nothing shifts as the cover comes off */
+/* `backwards`, not `both`: an opacity animation left filling forwards stays
+   in effect, and Chrome then treats the stage as a backdrop root — the cards'
+   backdrop-filter could only blur the empty stage, never the room behind it,
+   so the glass rendered as a flat tint. The end values are the defaults, so
+   letting the fill drop changes nothing on screen. */
 body.is-loaded .hero__copy,
 body.is-loaded .hero__stage {
-    animation: preHero .95s var(--pre-ease) both;
+    animation: preHero .95s var(--pre-ease) backwards;
 }
 
 body.is-loaded .hero__stage { animation-delay: .1s; }
@@ -6059,6 +6123,7 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
 @media (min-width: 1441px) {
     .room.has-photo ~ .hero__inner .fcard--co2 { right: max(6%, calc(50% - 660px)); }
     .room.has-photo ~ .hero__inner .fcard--gas { right: max(5%, calc(50% - 680px)); }
+    .room.has-photo ~ .hero__inner .fcard--temp { right: max(3%, calc(50% - 700px)); }
 }
 
 
@@ -6073,9 +6138,9 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
 @media (min-width: 1201px) and (max-width: 1440px) {
     /* the readings crowd the headline before the room gets narrow enough for
        the layout to change, so they give up a step of scale first */
-    .room.has-photo ~ .hero__inner .fcard { padding: .68rem .85rem; gap: .6rem; }
-    .room.has-photo ~ .hero__inner .fcard__value { font-size: .95rem; }
-    .room.has-photo ~ .hero__inner .fcard__spark { width: 46px; }
+    .room.has-photo ~ .hero__inner .fcard { padding: .54rem .72rem; gap: .52rem; }
+    .room.has-photo ~ .hero__inner .fcard__value { font-size: .9rem; }
+    .room.has-photo ~ .hero__inner .fcard__spark { width: 40px; }
     .room.has-photo ~ .hero__inner .meter { display: none; }
 }
 
@@ -6123,9 +6188,9 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
 @media (min-width: 768px) and (max-width: 1023px) {
     .stage { width: min(430px, 100%); }
 
-    .fcard { padding: .68rem .85rem; gap: .62rem; }
-    .fcard__value { font-size: .94rem; }
-    .fcard__spark { width: 46px; }
+    .fcard { padding: .56rem .74rem; gap: .54rem; }
+    .fcard__value { font-size: .9rem; }
+    .fcard__spark { width: 40px; }
 
     /* the airflow band is one row of four here as well; what it needs at
        this width is a little more room between the columns than the phone
@@ -6295,8 +6360,8 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
 
     /* the readings are content-sized, so this is what keeps two of them from
        meeting in the middle of a 320px stage */
-    .fcard { padding: .5rem .62rem; gap: .5rem; border-radius: 13px; }
-    .fcard__icon { width: 25px; height: 25px; border-radius: 8px; }
+    .fcard { padding: .46rem .58rem; gap: .45rem; border-radius: 12px; }
+    .fcard__icon { width: 24px; height: 24px; border-radius: 7px; }
     .fcard__icon svg { width: 14px; height: 14px; }
     .fcard__value { font-size: .8rem; }
     .fcard__label { font-size: .55rem; letter-spacing: .1em; }
@@ -6414,8 +6479,8 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
     .room__plant--c { filter: none; }
 
     .fcard {
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
     }
 
     .insight {
@@ -6522,7 +6587,7 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
     .nav__links { transition: none; }
 
     /* the hero's readings rest where they were drawn, not mid-bob */
-    .fcard { animation: none; transform: translateY(0) scale(var(--s)) rotate(var(--r)); }
+    .fcard { animation: none; transform: translateY(0) scale(var(--s)) rotate(var(--r)); transition: none; translate: none; }
     .device { animation: none; transform: none; }
 
     /* the pictures in the trust reel are parked off-screen by the scrub that
