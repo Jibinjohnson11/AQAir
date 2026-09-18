@@ -37,6 +37,8 @@
 
     --shell: min(1300px, 100% - 4rem);
     --ease:  cubic-bezier(.22, .61, .36, 1);
+    /* the softer, longer-tailed curve the hero buttons settle on */
+    --ease-premium: cubic-bezier(.22, 1, .36, 1);
 
     --glass:    linear-gradient(150deg, rgba(255, 255, 255, .19) 0%, rgba(255, 255, 255, .07) 100%);
     --glass-br: 1px solid rgba(214, 235, 243, .30);
@@ -694,8 +696,11 @@ img, picture, video, canvas {
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
-    transition: transform .28s var(--ease), box-shadow .28s var(--ease),
-                background .28s var(--ease), border-color .28s var(--ease), color .28s var(--ease);
+    transform: translateY(0) scale(1);
+    transform-origin: center;
+    transition: transform .28s var(--ease-premium), box-shadow .28s var(--ease-premium),
+                background .28s var(--ease-premium), border-color .28s var(--ease-premium),
+                color .28s var(--ease-premium);
 }
 
 .btn--primary {
@@ -707,16 +712,7 @@ img, picture, video, canvas {
         0 6px 18px -8px rgba(7, 20, 34, .7);
 }
 
-.btn--primary:hover {
-    transform: translateY(-2px);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, .9),
-        0 24px 46px -16px rgba(185, 217, 225, .7),
-        0 8px 22px -8px rgba(7, 20, 34, .75);
-}
-
-.btn__arrow { width: 18px; height: 18px; transition: transform .28s var(--ease); }
-.btn--primary:hover .btn__arrow { transform: translateX(3px); }
+.btn__arrow { width: 18px; height: 18px; transition: transform .28s var(--ease-premium); }
 
 .btn--ghost {
     color: var(--ice);
@@ -724,13 +720,76 @@ img, picture, video, canvas {
     border: 1px solid rgba(214, 235, 243, .45);
 }
 
-.btn--ghost:hover {
-    color: var(--white);
-    background: transparent;
-    border-color: rgba(214, 235, 243, .75);
+.btn__play { width: 20px; height: 20px; transition: transform .28s var(--ease-premium); }
+
+/* Hover — pointer devices only, so a tap on a phone never leaves a button
+   stuck in its lifted state. The lift is small and the shadow does the rest
+   of the work: the button reads as rising off the section, not glowing. */
+@media (hover: hover) and (pointer: fine) {
+    .btn--primary:hover {
+        transform: translateY(-3px) scale(1.015);
+        background: linear-gradient(135deg, var(--white) 0%, var(--white) 46%, var(--ice) 100%);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .95),
+            0 26px 48px -18px rgba(185, 217, 225, .68),
+            0 10px 26px -10px rgba(7, 20, 34, .72);
+    }
+
+    .btn--primary:hover .btn__arrow { transform: translateX(3px); }
+
+    .btn--ghost:hover {
+        color: var(--white);
+        transform: translateY(-3px) scale(1.015);
+        background: rgba(214, 235, 243, .07);
+        border-color: rgba(214, 235, 243, .78);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .14),
+            0 22px 40px -20px rgba(7, 20, 34, .8),
+            0 8px 20px -12px rgba(185, 217, 225, .35);
+    }
+
+    .btn--ghost:hover .btn__play { transform: translateX(3px); }
+
+    /* press — settles back toward the resting plane, quicker on the way down
+       than on the way up so the click feels answered rather than animated. */
+    .btn--primary:active,
+    .btn--ghost:active {
+        transform: translateY(-1px) scale(1.004);
+        transition-duration: .12s;
+    }
+
+    .btn--primary:active {
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .9),
+            0 14px 28px -16px rgba(185, 217, 225, .55),
+            0 5px 14px -8px rgba(7, 20, 34, .7);
+    }
+
+    .btn--ghost:active {
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .1),
+            0 12px 24px -18px rgba(7, 20, 34, .75);
+    }
 }
 
-.btn__play { width: 20px; height: 20px; }
+/* motion turned down: keep the colour shift, drop the movement */
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    .btn__arrow,
+    .btn__play {
+        transition: background .2s linear, border-color .2s linear, color .2s linear;
+    }
+
+    .btn--primary:hover,
+    .btn--ghost:hover,
+    .btn--primary:active,
+    .btn--ghost:active {
+        transform: none;
+    }
+
+    .btn--primary:hover .btn__arrow,
+    .btn--ghost:hover .btn__play { transform: none; }
+}
 
 /* --- stage ---------------------------------------------------------------- */
 
@@ -1126,40 +1185,17 @@ img, picture, video, canvas {
     --read-hem: clamp(2rem, 3.5vw, 3rem);
     padding: var(--read-gap) 0 var(--read-hem);
     color: var(--on-dark);
-    /* its own section now: the Deep Air Blue the hero's last stretch lands
-       on, so the join is one tone meeting itself */
-    background: var(--deep);
+    /* Deep Air Blue, flat and full-bleed: the hero's last stretch lands on
+       this exact value and the band below opens on it, so all three joins
+       are one tone meeting itself with nothing to step across */
+    background: #16324F;
 }
 
-/* The one thing in the join, and it is a light rather than a line.
-
-   A wide, soft Glacier pool centred on the readings and reaching well up
-   into the hero's last stretch — so it crosses the boundary instead of
-   starting at it, and the eye is given a gradient exactly where it would
-   otherwise go looking for an edge. Every stop fades to nothing, in every
-   direction, so there is no version of this that can draw a line. */
-.airdata::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    pointer-events: none;
-    background: radial-gradient(128% 74% at 50% 66%,
-        rgba(185, 217, 225, .105) 0%,
-        rgba(185, 217, 225, .05)  42%,
-        rgba(185, 217, 225, 0)    76%);
-    /* and it has to be gone before the box ends. The pool was still lit where
-       the stack's last pixel was, so the band below — which opens on the bare
-       Deep Air Blue underneath it — started three shades darker than the lit
-       tone above, and that step read as a rule across the full width. Fading
-       the light out over the last third puts the stack's bottom on exactly
-       the colour the band opens on, so the two sides meet on one value. */
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 58%, rgba(0, 0, 0, .45) 82%, transparent 100%);
-            mask-image: linear-gradient(180deg, #000 0%, #000 58%, rgba(0, 0, 0, .45) 82%, transparent 100%);
-}
+/* The Glacier pool that used to sit across this section is gone: it lifted
+   the middle of the readings a few shades off Deep Air Blue, which is the
+   one thing the flat fill above cannot have. The join does not need it —
+   the hero's last stop and the band's first stop are both #16324F, so the
+   boundaries are already invisible without a light laid over them. */
 
 /* ---- the air ------------------------------------------------------------- */
 
@@ -1569,6 +1605,17 @@ img, picture, video, canvas {
     /* the band behind it is the background. Painting one here is what used
        to make the join: its opening lift read as a section starting. */
     background: none;
+
+    /* The cards on this section carry no fill at all — the band reads
+       straight through them and a Glacier hairline is what gives each one
+       its shape. Declared here so the sensor cards, the AI card and the
+       phone are all defined by the same three values.
+       No backdrop-filter anywhere: the backdrop is a smooth gradient, so a
+       blur would move the pixels by ~1/255 and cost every frame of scroll. */
+    --pcard-br: 1px solid rgba(185, 217, 225, .42);
+    --pcard-sh:
+        inset 0 1px 0 rgba(214, 235, 243, .16),
+        0 20px 38px -30px rgba(4, 14, 25, .7);
 }
 
 /* the Glacier breath that used to be pinned to this section's top edge is now
@@ -1857,9 +1904,9 @@ img, picture, video, canvas {
     gap: .75rem;
     padding: .72rem .95rem;
     border-radius: 18px;
-    background: var(--glass);
-    border: var(--glass-br);
-    box-shadow: var(--glass-sh);
+    background: transparent;
+    border: var(--pcard-br);
+    box-shadow: var(--pcard-sh);
     translate: calc(var(--px, 0) * var(--depth)) calc(var(--py, 0) * var(--depth));
     /* no backdrop-filter here on purpose: the backdrop is a smooth gradient,
        so blurring it changed the pixels by ~1/255 while costing every frame
@@ -1923,12 +1970,12 @@ img, picture, video, canvas {
     z-index: 6;
     padding: 1rem 1.15rem 1.1rem;
     border-radius: 24px;
-    color: var(--deep);
-    background: linear-gradient(152deg, var(--white) 0%, #F1F8FB 52%, var(--ice) 100%);
-    border: 1px solid rgba(255, 255, 255, .8);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, .95),
-        0 34px 64px -30px rgba(4, 14, 25, .9);
+    /* no fill: the band reads through the card and the Glacier hairline is
+       what defines it — the same treatment the sensor cards carry */
+    color: var(--on-dark);
+    background: transparent;
+    border: var(--pcard-br);
+    box-shadow: var(--pcard-sh);
     translate: calc(var(--px, 0) * var(--depth)) calc(var(--py, 0) * var(--depth));
 }
 
@@ -1946,7 +1993,7 @@ img, picture, video, canvas {
     place-items: center;
     border-radius: 10px;
     color: var(--ice);
-    background: linear-gradient(135deg, var(--turquoise), var(--deep));
+    background: linear-gradient(135deg, var(--turquoise), var(--slate));
 }
 
 .aicard__spark svg { width: 16px; height: 16px; }
@@ -1956,7 +2003,7 @@ img, picture, video, canvas {
     font-weight: 600;
     letter-spacing: .16em;
     text-transform: uppercase;
-    color: var(--turquoise);
+    color: var(--glacier);
 }
 
 .aicard__state {
@@ -1971,13 +2018,13 @@ img, picture, video, canvas {
     margin: 0 0 .85rem;
     font-size: .78rem;
     line-height: 1.5;
-    color: var(--ink-70);
+    color: var(--on-dark-72);
 }
 
 .aicard__meter {
     height: 5px;
     border-radius: 3px;
-    background: rgba(22, 50, 79, .12);
+    background: rgba(214, 235, 243, .16);
     overflow: hidden;
 }
 
@@ -2007,43 +2054,91 @@ img, picture, video, canvas {
     position: absolute;
     right: 1%;
     bottom: 0;
-    width: clamp(132px, min(26%, 22vh), 205px);
+    /* narrowed by ~9% against the old card: the display is a 9/19 modern
+       handset now, so this keeps the device occupying the same height on the
+       stage while reading as a slim phone rather than a phone-shaped card */
+    width: clamp(120px, min(23.6%, 20vh), 186px);
     z-index: 3;
     translate: calc(var(--px, 0) * var(--depth)) calc(var(--py, 0) * var(--depth));
 }
 
 .phone__frame {
     position: relative;
-    padding: 4.4cqi;
-    border-radius: 18.5cqi;
-    background: linear-gradient(150deg, #2A5478 0%, var(--deep) 44%, var(--deep-900) 100%);
-    border: 1px solid rgba(214, 235, 243, .28);
+    /* the rail: one thin band around the display, the thickness a real
+       handset has. Nothing is painted behind it, so the band's only body is
+       its own hairline and the light caught along its top edge. */
+    padding: 1.7cqi;
+    border-radius: 15.5cqi;
+    background: transparent;
+    border: var(--pcard-br);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, .28),
-        0 44px 74px -32px rgba(4, 14, 25, .92);
+        /* the rail's top highlight and the dark inner lip beneath it — the
+           two edges that make a thin frame read as a physical object */
+        inset 0 .5cqi 0 -.35cqi rgba(255, 255, 255, .34),
+        inset 0 0 0 1px rgba(255, 255, 255, .07),
+        inset 0 -.5cqi 0 -.35cqi rgba(7, 20, 34, .35),
+        /* weight on the stage only — an outer shadow never falls inside the
+           border box, so the display stays clear */
+        0 26px 44px -30px rgba(4, 14, 25, .8);
 }
+
+/* the side buttons, as a real device carries them: two short raised slivers
+   on the rail, drawn off the frame so no markup changes */
+.phone__frame::before,
+.phone__frame::after {
+    content: "";
+    position: absolute;
+    left: -1px;
+    width: .75cqi;
+    border-radius: 1px 0 0 1px;
+    background: rgba(214, 235, 243, .38);
+    pointer-events: none;
+}
+
+.phone__frame::before { top: 26%; height: 5.5%; }
+.phone__frame::after  { top: 34%; height: 9%; }
 
 .phone__notch {
     position: absolute;
-    top: 8.3cqi;
+    top: 5.6cqi;
     left: 50%;
     transform: translateX(-50%);
-    width: 30%;
-    height: 2.4cqi;
-    border-radius: 3px;
-    background: rgba(214, 235, 243, .3);
+    /* the camera cutout — an opaque pill is the one solid thing on the
+       display, which is exactly how it reads on a real screen */
+    width: 26%;
+    height: 5.4cqi;
+    border-radius: 999px;
+    background: rgba(6, 17, 29, .82);
+    box-shadow: inset 0 0 0 1px rgba(214, 235, 243, .14);
     z-index: 2;
 }
 
 .phone__screen {
-    aspect-ratio: 9 / 16.4;
-    padding: 11.7cqi 7cqi 6.6cqi;
-    border-radius: 14.6cqi;
-    background: linear-gradient(180deg, var(--white) 0%, #F1F8FB 62%, var(--ice) 100%);
+    aspect-ratio: 9 / 19;
+    padding: 14cqi 6.6cqi 9cqi;
+    border-radius: 13.8cqi;
+    /* nothing at all behind the display: the band reads straight through it,
+       and the inner bezel line is where the rail ends and the screen begins */
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(6, 17, 29, .4);
     display: flex;
     flex-direction: column;
-    gap: 4.3cqi;
+    gap: 4cqi;
     overflow: hidden;
+    position: relative;
+}
+
+/* the home indicator, the last thing that says "screen" rather than "panel" */
+.phone__screen::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 3.4cqi;
+    transform: translateX(-50%);
+    width: 32%;
+    height: 1.1cqi;
+    border-radius: 999px;
+    background: rgba(214, 235, 243, .5);
 }
 
 .phone__room {
@@ -2052,7 +2147,7 @@ img, picture, video, canvas {
     font-size: 7.2cqi;
     font-weight: 700;
     letter-spacing: -.015em;
-    color: var(--deep);
+    color: var(--on-dark);
 }
 
 .phone__status {
@@ -2061,7 +2156,11 @@ img, picture, video, canvas {
     gap: 4.3cqi;
     padding: 5.5cqi 5.9cqi;
     border-radius: 7.8cqi;
-    background: linear-gradient(150deg, var(--deep) 0%, #1B3D5E 100%);
+    /* its own tile still, but drawn the way the cards are: no fill, one
+       Glacier hairline. An inset ring rather than a border, so the tile's
+       box stays exactly the size it was. */
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(185, 217, 225, .38);
 }
 
 .phone__ring {
@@ -2099,6 +2198,7 @@ img, picture, video, canvas {
     list-style: none;
     display: flex;
     flex-direction: column;
+    margin-top: auto;
 }
 
 .phone__list li {
@@ -2106,9 +2206,9 @@ img, picture, video, canvas {
     align-items: center;
     justify-content: space-between;
     padding: 3cqi 0;
-    border-top: 1px solid rgba(185, 217, 225, .55);
+    border-top: 1px solid rgba(185, 217, 225, .2);
     font-size: 5.3cqi;
-    color: var(--ink-50);
+    color: var(--on-dark-72);
 }
 
 .phone__list li:first-child { border-top: 0; }
@@ -2117,7 +2217,7 @@ img, picture, video, canvas {
     font-family: var(--font-display);
     font-size: 5.9cqi;
     font-weight: 700;
-    color: var(--deep);
+    color: var(--on-dark);
 }
 
 /* --- stay connected ------------------------------------------------------- */
@@ -2592,7 +2692,6 @@ img, picture, video, canvas {
 
 @media (max-width: 1200px) {
     .showcase .aicard { order: 7; }
-    .showcase .phone  { order: 8; }
 
     .showcase > * {
         position: static;
@@ -2612,12 +2711,14 @@ img, picture, video, canvas {
 
     .aicard { grid-column: 1 / -1; }
 
-    .phone {
-        grid-column: 1 / -1;
-        justify-self: center;
-        width: min(205px, 62%);
-        margin-top: 1rem;
-    }
+    /* The phone is a desktop-only element. Below 1200px the stage stops
+       floating and becomes a grid, and the handset was the one item in it
+       that only ever repeated what the cards already say — so it is taken
+       out of the flow entirely rather than scaled down. `display: none`
+       removes it from the grid, so it claims no track, no row and no gap,
+       and the device, the sensor cards and the AI card close up behind it
+       with their own sizes and order untouched. */
+    .phone { display: none; }
 
     .connect { max-width: none; }
     .chain { margin-top: clamp(2rem, 5vw, 3.25rem); }
@@ -6383,7 +6484,6 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
 
     /* the product and everything around it */
     .showcase__device { width: min(190px, 62%); }
-    .phone { width: min(180px, 68%); }
     .scard { padding: .7rem .78rem; }
     .scard__icon { width: 30px; height: 30px; border-radius: 10px; }
     .aicard { padding: 1rem 1.05rem 1.15rem; }
