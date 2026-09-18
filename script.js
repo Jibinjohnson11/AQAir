@@ -962,6 +962,95 @@
         }
     }
 
+    /* ── 8. the how-it-works film ─────────────────────────────────────────
+       The film does not run on page load, and it does not run while the
+       section is arriving. It starts at the moment its own box is filling
+       the screen — top at or above the viewport's top, bottom at or below
+       its bottom — which on the pinned layout is the moment the stage locks,
+       and on the stacked one the moment the section has taken the screen.
+
+       Two observers would not answer this on their own: once an element is
+       taller than the viewport its intersection ratio stops climbing, so
+       there is no threshold that means "full". The observer is used for what
+       it is good at — knowing when the section is anywhere near — and only
+       while it is near does a passive, rAF-coalesced scroll check measure
+       the box. Off-screen, nothing is listening and nothing is running.  */
+    var film = doc.querySelector('.howto__filmEl');
+    if (film && !reduce) {
+        var filmBox   = film.parentNode;   /* .howto__film — the box measured */
+        var filmNear  = false;             /* the section is within reach     */
+        var filmOn    = false;             /* and the film is playing         */
+        var filmTick  = false;             /* one check per frame, at most    */
+        var filmBegun = false;             /* has it ever started             */
+
+        /* a play() that cannot throw: if the browser declines (it should not,
+           the film is muted and inert) the page simply carries on */
+        var filmPlay = function () {
+            var p = film.play();
+            if (p && p.catch) p.catch(function () {});
+        };
+
+        var filmFills = function () {
+            var r  = filmBox.getBoundingClientRect();
+            var vh = win.innerHeight || doc.documentElement.clientHeight;
+            /* the box covers the screen, or — on a screen taller than the box
+               ever gets — it is entirely inside it. One pixel of slack, so a
+               fractional layout never sits just short of the test. */
+            return (r.top <= 1 && r.bottom >= vh - 1) ||
+                   (r.top >= -1 && r.bottom <= vh + 1 && r.height > 0);
+        };
+
+        var filmRead = function () {
+            filmTick = false;
+            var want = filmFills();
+            if (want === filmOn) return;
+            filmOn = want;
+            if (want) {
+                /* smoothly from the beginning, the first time and after every
+                   time it has left the screen */
+                if (!filmBegun || film.paused) {
+                    try { film.currentTime = 0; } catch (e) {}
+                }
+                filmBegun = true;
+                filmPlay();
+            } else {
+                film.pause();
+            }
+        };
+
+        var filmQueue = function () {
+            if (filmTick) return;
+            filmTick = true;
+            win.requestAnimationFrame(filmRead);
+        };
+
+        if (hasIO) {
+            new IntersectionObserver(function (entries) {
+                var near = entries[0].isIntersecting;
+                if (near === filmNear) return;
+                filmNear = near;
+                if (near) {
+                    /* the file is only asked for once the section is close:
+                       nothing of it is fetched on page load, and it is warm
+                       by the time the stage fills the screen */
+                    if (film.preload !== 'auto') { film.preload = 'auto'; film.load(); }
+                    win.addEventListener('scroll', filmQueue, { passive: true });
+                    win.addEventListener('resize', filmQueue);
+                    filmQueue();
+                } else {
+                    win.removeEventListener('scroll', filmQueue);
+                    win.removeEventListener('resize', filmQueue);
+                    if (filmOn) { filmOn = false; film.pause(); }
+                }
+            }, { rootMargin: '100px 0px' }).observe(filmBox);
+        } else {
+            /* no observer: the same check, on the same passive listener */
+            win.addEventListener('scroll', filmQueue, { passive: true });
+            win.addEventListener('resize', filmQueue);
+            filmQueue();
+        }
+    }
+
     /* ── 9. back to top ───────────────────────────────────────────────────
        One passive scroll listener, gated on a flag so the class is only
        touched when the answer actually changes, and the same rAF discipline

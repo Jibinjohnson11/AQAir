@@ -1219,6 +1219,21 @@
     <div class="howto__box">
         <div class="howto__story">
 
+            <!-- the background film. It lives on the story rather than on the
+                 section because the story is the screen that is held: pinned,
+                 it is exactly what is on screen, so the film covers the whole
+                 view, travels with the pin and adds no height to the run.
+                 Clipped by its own layer — `overflow` on the section itself
+                 would make a scrollport and silently kill the pin. -->
+            <div class="howto__film" aria-hidden="true">
+                <video class="howto__filmEl"
+                       src="assets/video/worckv.mp4"
+                       muted loop playsinline
+                       preload="metadata"
+                       disablepictureinpicture
+                       tabindex="-1"></video>
+            </div>
+
             <!-- two Glacier washes, the same faint atmosphere the sections
                  above use. Clipped by their own layer so the sticky pin above
                  them never sits inside a scrollport. -->

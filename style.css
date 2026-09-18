@@ -4113,6 +4113,87 @@ img, picture, video, canvas {
 }
 
 
+/* --- the orbit, held to one screen ----------------------------------------
+   The stage only exists above 1080px, so this is where the section can be
+   asked to fit a viewport — below it the orbit is a stacked grid and the
+   height stays auto, growing with whatever the content needs.
+
+   The section used to run about 1.5 screens on a desktop: ~260px of padding,
+   ~250px of header, an 88px gap and then a stage that was 780px tall because
+   its width said so. The fix is not to compress anything — it is to stop
+   sizing the stage from the width alone. The stage keeps its 1200 x 780 ratio
+   exactly (the SVG's coordinate space and the cards' percentages both depend
+   on it); what changes is that its width is now taken from the height left
+   over once the header and the padding have had theirs.
+   -------------------------------------------------------------------------- */
+
+@media (min-width: 1081px) {
+    .whyaq {
+        /* the breath at both ends, in viewport height rather than width — it
+           is the screen's height this section now has to live inside */
+        --whyaq-pad: clamp(2.25rem, 4.2vh, 3.75rem);
+
+        /* everything above the stage: the two paddings, the header and the
+           gap under it. The stage gets the rest. */
+        --whyaq-chrome: clamp(21rem, 17rem + 8vh, 27rem);
+
+        /* the pull is overlap with the render above, not height of its own,
+           so it is added back here the same way the padding adds it back */
+        min-height: calc(100svh + var(--whyaq-pull));
+        padding: calc(var(--whyaq-pad) + var(--whyaq-pull)) 0 var(--whyaq-pad);
+
+        /* and if a very tall screen leaves more room than the stage can use,
+           the composition sits in the middle of it rather than at the top */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* the header gives back what it can without losing its voice: the title
+       comes down about half a step and the lead reads at its body size */
+    .whyaq__eyebrow { margin-bottom: .85rem; }
+
+    .whyaq__title {
+        margin-bottom: 1rem;
+        font-size: clamp(2rem, 2.9vw, 2.65rem);
+    }
+
+    .whyaq__lead {
+        max-width: 38rem;
+        font-size: clamp(.94rem, 1vw, 1.02rem);
+        line-height: 1.68;
+    }
+
+    .orbit {
+        /* the height the screen actually has for the stage, floored so it can
+           never collapse and capped at the 780px it was drawn at */
+        --orbit-h: clamp(400px, calc(100svh - var(--whyaq-chrome)), 780px);
+        /* width follows from that height at the stage's own ratio, so the
+           aspect-ratio above still governs and nothing in the picture moves
+           relative to anything else */
+        width: min(100%, calc(var(--orbit-h) * 1200 / 780));
+        margin: clamp(1rem, 2.4vh, 2.25rem) auto 0;
+    }
+
+    /* the six come down with the stage. Their type is in rem, so it would not
+       have scaled with it — these are the same cards, one size smaller, which
+       keeps the gap between the three rows honest at the shorter stage. */
+    .wcard__head { gap: .6rem; margin-bottom: .62rem; }
+
+    .wcard__icon { width: 38px; height: 38px; border-radius: 12px; }
+    .wcard__icon svg { width: 19px; height: 19px; }
+    .wcard__no { font-size: .72rem; }
+
+    .wcard__title {
+        margin-bottom: .38rem;
+        font-size: clamp(.98rem, 1.05vw, 1.1rem);
+        line-height: 1.25;
+    }
+
+    .wcard__line { font-size: .84rem; line-height: 1.6; }
+}
+
+
 /* ==========================================================================
    HOW AIR AQ WORKS
    Light section, opening on the Pure White the section above closes on.
@@ -4162,6 +4243,37 @@ img, picture, video, canvas {
    Two Glacier washes, wide and very faint — the same atmosphere the sections
    above carry, and the only decoration here besides the line.
    -------------------------------------------------------------------------- */
+
+/* --- the background film ---------------------------------------------------
+   Cover-fit, centred, and clipped by this layer alone: the section must never
+   carry an `overflow` of its own, because that would turn it into a scrollport
+   and the sticky pin inside it would stop working.
+
+   It sits at -2, under the Glacier washes at -1 and under everything in the
+   flow, so not one line of the existing content moves or changes order.
+
+   Nothing is laid over it: no veil, no tint, no opacity. The film plays at
+   full strength and the section's own ground gradient stays where it always
+   was — behind it, as the fallback for when the video has not loaded.
+   -------------------------------------------------------------------------- */
+
+.howto__film {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    overflow: clip;
+    pointer-events: none;
+}
+
+.howto__filmEl {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* cover: the film fills the box at its own aspect ratio, cropped rather
+       than stretched, and stays centred at every width */
+    object-fit: cover;
+    object-position: center;
+}
 
 .howto__air {
     position: absolute;
@@ -6691,6 +6803,10 @@ body.is-loaded .hero__stage { animation-delay: .1s; }
     .reel__copy { opacity: 1; transform: none; }
     .reel__mark { transform: none; }
     .reel__under { translate: none; }
+
+    /* a looping film is motion too: it goes, and the section falls back to
+       the ground gradient it has always had */
+    .howto__film { display: none; }
 
     /* and the six benefits are drawn rather than faded in */
     .js-reveal .whyaq .oflow,
